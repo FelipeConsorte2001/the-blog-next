@@ -6,6 +6,7 @@ type PostDateProps = {
 export default async function PostDate({ dateTime }: PostDateProps) {
   return (
     <time
+      suppressHydrationWarning
       className='text-slate-600 text-sm/tight'
       dateTime={dateTime}
       title={formatDistanceToNow(dateTime)}
