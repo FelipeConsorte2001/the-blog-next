@@ -2,9 +2,19 @@ import { findAllPostsAdmin } from '@/lib/queries/admin';
 import clsx from 'clsx';
 import Link from 'next/link';
 import { DeletePostButton } from '../DeletePostButton';
+import ErrorMessage from '../ErrorMessage';
 
 export default async function PostsListAdmin() {
   const posts = await findAllPostsAdmin();
+  if (posts.length <= 1)
+    return (
+      <ErrorMessage
+        pageTitle=''
+        content='Vamos criar um post'
+        contentTitle='Ops!'
+      />
+    );
+
   return (
     <div className='mb-16'>
       {posts.map(post => {
