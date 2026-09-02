@@ -13,7 +13,7 @@ export function DeletePostButton({ title, id }: DeletePostButtonProps) {
   async function handlerClick() {
     startTransition(async () => {
       const result = await deletePostAction(id);
-      console.log('dek', result);
+      if (result?.error) console.log('dek', result);
       setShowDialog(false);
     });
   }

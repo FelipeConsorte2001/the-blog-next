@@ -18,7 +18,7 @@ export class DrizzlePostRepository implements PostRepository {
   }
   async findById(id: string): Promise<PostModel> {
     const post = await drizzleDb.query.posts.findFirst({
-      where: (posts, { eq }) => eq(posts.slug, id),
+      where: (posts, { eq }) => eq(posts.id, id),
     });
     if (!post) throw new Error('ID não encontrado');
     return post;
