@@ -15,7 +15,7 @@ export async function deletePostAction(id: string) {
   const post = await postRepository.findById(id).catch(() => undefined);
   if (!post)
     return {
-      error: 'Invalif data post',
+      error: 'Invalid data',
     };
 
   await drizzleDb.delete(postsTable).where(eq(postsTable.id, id));
