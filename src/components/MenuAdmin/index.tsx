@@ -50,7 +50,7 @@ export function MenuAdmin() {
         <FileTextIcon />
         Posts
       </Link>
-      <Link href='/admin/new' className={classNameLink}>
+      <Link href='/admin/post/new' className={classNameLink}>
         <PlusIcon />
         Criar Post
       </Link>
