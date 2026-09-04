@@ -9,7 +9,7 @@ db.sqlite3
 !.yarn/plugins
 !.yarn/releases
 !.yarn/versions
-
+uploads/
 # testing
 /coverage
 
