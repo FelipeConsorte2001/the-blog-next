@@ -1,4 +1,4 @@
-import { formatDatetime, formatDistanceToNow } from '@/ultils/format-datetime';
+import { formatDatetime, formatDistanceToNow } from '@/utils/format-datetime';
 type PostDateProps = {
   dateTime: string;
 };
