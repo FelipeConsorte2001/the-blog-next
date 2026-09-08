@@ -10,3 +10,4 @@ export type PostModel = {
   updatedAt: string;
   author: string;
 };
+export type DtoPost = Omit<PostModel, 'updatedAt'>;
