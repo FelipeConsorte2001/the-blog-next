@@ -1,10 +1,9 @@
 'use server';
 
-import { drizzleDb } from '@/db/drizzle';
-import { postsTable } from '@/db/drizzle/schemas';
 import { makePartialDtoPost } from '@/dto/post/dto';
 import { PostCreateSchema } from '@/lib/validation';
 import { DtoPost, PostModel } from '@/models/post/post-model';
+import { postRepository } from '@/repositories/post';
 import { getZodErrorMessages } from '@/utils/get-zod-error-messages';
 import { slugFromText } from '@/utils/make-slug-from-text';
 import { revalidateTag } from 'next/cache';
@@ -29,7 +28,6 @@ export async function createPostAction(
 
   const formDataToObj = Object.fromEntries(formData.entries());
   const zodParsedObj = PostCreateSchema.safeParse(formDataToObj);
-  console.log(zodParsedObj.error);
 
   if (!zodParsedObj.success) {
     const error = getZodErrorMessages(zodParsedObj.error);
@@ -50,7 +48,20 @@ export async function createPostAction(
     slug: slugFromText(validPostData.title),
   };
 
-  await drizzleDb.insert(postsTable).values(newPost);
+  try {
+    await postRepository.create(newPost);
+  } catch (e: unknown) {
+    if (e instanceof Error) {
+      return {
+        formState: newPost,
+        error: [e.message],
+      };
+    }
+    return {
+      formState: newPost,
+      error: ['unknown erro'],
+    };
+  }
   revalidateTag('posts', { expire: 0 });
 
   redirect(`/admin/post/${newPost.id}`);
