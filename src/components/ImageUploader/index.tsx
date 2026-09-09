@@ -1,7 +1,6 @@
 'use client';
 
 import { uploadImageAction } from '@/actions/upload/upload-image-action';
-import { IMAGE_UPLOAD_MX_SIZE } from '@/lib/constantes';
 import { ImageUpIcon } from 'lucide-react';
 import Image from 'next/image';
 import { useRef, useState, useTransition } from 'react';
@@ -10,6 +9,8 @@ import { Button } from '../Button';
 type ImageUploaderProps = {
   disabled?: boolean;
 };
+const imageMaxSize = Number(process.env.IMAGE_UPLOAD_MX_SIZE) || 921600;
+
 export function ImageUploader({ disabled = false }: ImageUploaderProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUplaoding, startTransition] = useTransition();
@@ -33,10 +34,8 @@ export function ImageUploader({ disabled = false }: ImageUploaderProps) {
       return;
     }
 
-    if (file.size > IMAGE_UPLOAD_MX_SIZE) {
-      toast.error(
-        `Imagem muito grande. Max.: ${IMAGE_UPLOAD_MX_SIZE / 1024}KB.`,
-      );
+    if (file.size > imageMaxSize) {
+      toast.error(`Imagem muito grande. Max.: ${imageMaxSize / 1024}KB.`);
       fileInput.value = '';
       setImgUrl('');
 
