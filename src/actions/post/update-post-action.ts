@@ -1,25 +1,22 @@
 'use server';
 
-import { makePartialDtoPost } from '@/dto/post/dto';
-import { PostCreateSchema } from '@/lib/validation';
-import { DtoPost, PostModel } from '@/models/post/post-model';
+import { makeDtoPost, makePartialDtoPost } from '@/dto/post/dto';
+import { PostUpdateSchema } from '@/lib/validation';
+import { DtoPost } from '@/models/post/post-model';
 import { postRepository } from '@/repositories/post';
 import { getZodErrorMessages } from '@/utils/get-zod-error-messages';
-import { slugFromText } from '@/utils/make-slug-from-text';
 import { revalidateTag } from 'next/cache';
-import { redirect } from 'next/navigation';
-import { v4 } from 'uuid';
 
-type CreatePostActionState = {
+type UpdatePostActionState = {
   formState: DtoPost;
   error: string[];
   sucess?: true;
 };
 
-export async function createPostAction(
-  prevState: CreatePostActionState,
+export async function updatePostAction(
+  prevState: UpdatePostActionState,
   formData: FormData,
-): Promise<CreatePostActionState> {
+): Promise<UpdatePostActionState> {
   if (!(formData instanceof FormData)) {
     return {
       formState: prevState.formState,
@@ -27,8 +24,17 @@ export async function createPostAction(
     };
   }
 
+  const id = formData.get('id')?.toString() || '';
+
+  if (!id || typeof id !== 'string') {
+    return {
+      formState: prevState.formState,
+      error: ['Invalid data'],
+    };
+  }
+
   const formDataToObj = Object.fromEntries(formData.entries());
-  const zodParsedObj = PostCreateSchema.safeParse(formDataToObj);
+  const zodParsedObj = PostUpdateSchema.safeParse(formDataToObj);
 
   if (!zodParsedObj.success) {
     const error = getZodErrorMessages(zodParsedObj.error);
@@ -39,31 +45,31 @@ export async function createPostAction(
   }
 
   const validPostData = zodParsedObj.data;
-
-  const timeCreated = new Date().toISOString();
-  const newPost: PostModel = {
+  const newPost = {
     ...validPostData,
-    createdAt: timeCreated,
-    updatedAt: timeCreated,
-    id: v4(),
-    slug: slugFromText(validPostData.title),
   };
 
+  let post;
   try {
-    await postRepository.create(newPost);
+    post = await postRepository.update(id, newPost);
   } catch (e: unknown) {
     if (e instanceof Error) {
       return {
-        formState: newPost,
+        formState: makePartialDtoPost(formDataToObj),
         error: [e.message],
       };
     }
     return {
-      formState: newPost,
+      formState: makePartialDtoPost(formDataToObj),
       error: ['unknown erro'],
     };
   }
   revalidateTag('posts', { expire: 0 });
+  revalidateTag(`posts-${post.slug}`, { expire: 0 });
 
-  redirect(`/admin/post/${newPost.id}?created=1`);
+  return {
+    formState: makeDtoPost(post),
+    error: [],
+    sucess: true,
+  };
 }

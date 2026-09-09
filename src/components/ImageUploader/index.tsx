@@ -7,8 +7,10 @@ import Image from 'next/image';
 import { useRef, useState, useTransition } from 'react';
 import { toast } from 'react-toastify';
 import { Button } from '../Button';
-
-export function ImageUploader() {
+type ImageUploaderProps = {
+  disabled?: boolean;
+};
+export function ImageUploader({ disabled = false }: ImageUploaderProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUplaoding, startTransition] = useTransition();
   const [imgUrl, setImgUrl] = useState<string>('');
@@ -60,7 +62,11 @@ export function ImageUploader() {
 
   return (
     <div className='flex flex-col py-4'>
-      <Button onClick={handleChooseFile} type='button' disabled={isUplaoding}>
+      <Button
+        onClick={handleChooseFile}
+        type='button'
+        disabled={isUplaoding || disabled}
+      >
         <ImageUpIcon />
         Enviar Imagem
       </Button>
@@ -86,6 +92,7 @@ export function ImageUploader() {
         className='hidden'
         name='file'
         accept='image/*'
+        disabled={isUplaoding || disabled}
       />
     </div>
   );
