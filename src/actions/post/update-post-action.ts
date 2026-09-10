@@ -1,7 +1,8 @@
 'use server';
 
 import { makeDtoPost, makePartialDtoPost } from '@/dto/post/dto';
-import { PostUpdateSchema } from '@/lib/validation';
+import { verifyLoginSession } from '@/lib/login/manage-login';
+import { PostUpdateSchema } from '@/lib/post/validation';
 import { DtoPost } from '@/models/post/post-model';
 import { postRepository } from '@/repositories/post';
 import { getZodErrorMessages } from '@/utils/get-zod-error-messages';
@@ -17,6 +18,7 @@ export async function updatePostAction(
   prevState: UpdatePostActionState,
   formData: FormData,
 ): Promise<UpdatePostActionState> {
+  const isAuthenticated = await verifyLoginSession();
   if (!(formData instanceof FormData)) {
     return {
       formState: prevState.formState,
@@ -35,6 +37,13 @@ export async function updatePostAction(
 
   const formDataToObj = Object.fromEntries(formData.entries());
   const zodParsedObj = PostUpdateSchema.safeParse(formDataToObj);
+
+  if (!isAuthenticated) {
+    return {
+      formState: makePartialDtoPost(formDataToObj),
+      error: ['Do the login in another page'],
+    };
+  }
 
   if (!zodParsedObj.success) {
     const error = getZodErrorMessages(zodParsedObj.error);

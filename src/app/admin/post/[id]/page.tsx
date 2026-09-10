@@ -1,6 +1,6 @@
 import { ManagePostForm } from '@/components/Manage/PostForm';
 import { makeDtoPost } from '@/dto/post/dto';
-import { findPostByIdAdmin } from '@/lib/queries/admin';
+import { findPostByIdAdmin } from '@/lib/post/queries/admin';
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
