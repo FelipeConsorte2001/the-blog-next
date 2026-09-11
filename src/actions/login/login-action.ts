@@ -20,7 +20,7 @@ export async function loginAction(state: LoginActionState, formData: FormData) {
   if (!username || !password) {
     return {
       username,
-      password: 'Passoword invalid',
+      error: 'Passoword invalid',
     };
   }
 
@@ -31,7 +31,7 @@ export async function loginAction(state: LoginActionState, formData: FormData) {
   );
 
   if (!isUsernameCorrect || !isPasswordValid) {
-    return { username, password: 'User or password invalid' };
+    return { username, error: 'User or password invalid' };
   }
   await createLoginSession(username);
   redirect('/admin/post');
