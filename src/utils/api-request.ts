@@ -1,0 +1,49 @@
+type ApiRequestError = {
+  errors: string[];
+  success: false;
+  status: number;
+};
+
+type ApiRequestSuccess<T> = {
+  data: T;
+  success: true;
+  status: number;
+};
+
+export const apiUrl = process.env.API_URL || 'http://localhost:3001';
+
+export type ApiRequest<T> = ApiRequestError | ApiRequestSuccess<T>;
+
+export async function apiRequest<T>(
+  url: string,
+  options?: RequestInit,
+): Promise<ApiRequest<T>> {
+  try {
+    const res = await fetch(`${apiUrl}${url}`, options);
+    const json = await res.json().catch(() => null);
+
+    if (!res.ok) {
+      const errors = Array.isArray(json?.message)
+        ? json.message
+        : [json?.message || 'Unexpected erro'];
+
+      return {
+        errors,
+        success: false,
+        status: res.status,
+      };
+    }
+    return {
+      data: json,
+      success: true,
+      status: res.status,
+    };
+  } catch (err) {
+    console.log(err);
+    return {
+      errors: ['Falid to conected to service'],
+      success: false,
+      status: 500,
+    };
+  }
+}

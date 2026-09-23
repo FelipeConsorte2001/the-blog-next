@@ -5,7 +5,9 @@ import {
   PublicUserDto,
   PublicUserSchema,
 } from '@/lib/user/schemas';
+import { apiRequest } from '@/utils/api-request';
 import { getZodErrorMessages } from '@/utils/get-zod-error-messages';
+import { redirect } from 'next/navigation';
 
 type CreateUserActionState = {
   user: PublicUserDto;
@@ -36,37 +38,21 @@ export async function createUserAction(
     };
   }
 
-  try {
-    const apiUrl = process.env.API_URL || 'http://localhost:3001';
+  const createResponse = await apiRequest<PublicUserDto>('/user', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(parsedFormData.data),
+  });
 
-    const response = await fetch(`${apiUrl}/user`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(parsedFormData.data),
-    });
-
-    const json = await response.json();
-    if (!response.ok) {
-      console.log(json);
-      return {
-        user: PublicUserSchema.parse(formObj),
-        errors: json.message,
-        success: false,
-      };
-    }
+  if (!createResponse.success) {
     return {
       user: PublicUserSchema.parse(formObj),
-      errors: ['Successs'],
-      success: true,
-    };
-  } catch (error) {
-    console.log(error);
-    return {
-      user: PublicUserSchema.parse(formObj),
-      errors: ['Failed to connected to server'],
-      success: false,
+      errors: createResponse.errors,
+      success: createResponse.success,
     };
   }
+
+  redirect('/login?created=1');
 }
