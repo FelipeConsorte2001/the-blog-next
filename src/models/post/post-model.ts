@@ -1,3 +1,5 @@
+import { PublicUserDto } from '@/lib/user/schemas';
+
 export type PostModel = {
   id: string;
   title: string;
@@ -11,3 +13,16 @@ export type PostModel = {
   author: string;
 };
 export type DtoPost = Omit<PostModel, 'updatedAt'>;
+
+export type PostModelFromApi = {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  content: string;
+  coverImageUrl: string;
+  published: boolean;
+  createdAt: string;
+  updatedAt: string;
+  author: PublicUserDto;
+};

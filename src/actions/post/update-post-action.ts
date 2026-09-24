@@ -2,7 +2,7 @@
 
 import { makeDtoPost, makePartialDtoPost } from '@/dto/post/dto';
 import { verifyLoginSession } from '@/lib/login/manage-login';
-import { PostUpdateSchema } from '@/lib/post/validation';
+import { PostUpdateSchema } from '@/lib/post/schemas';
 import { DtoPost } from '@/models/post/post-model';
 import { postRepository } from '@/repositories/post';
 import { getZodErrorMessages } from '@/utils/get-zod-error-messages';

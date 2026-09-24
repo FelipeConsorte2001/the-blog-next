@@ -1,11 +1,25 @@
-import { findAllPostsAdmin } from '@/lib/post/queries/admin';
+import { findPostAllFromApiAdmin } from '@/lib/post/queries/admin';
 import clsx from 'clsx';
 import Link from 'next/link';
 import { DeletePostButton } from '../DeletePostButton';
 import ErrorMessage from '../ErrorMessage';
 
 export default async function PostsListAdmin() {
-  const posts = await findAllPostsAdmin();
+  const postsRes = await findPostAllFromApiAdmin();
+
+  if (!postsRes.success) {
+    console.log(postsRes.errors);
+    return (
+      <ErrorMessage
+        pageTitle=''
+        content='Vamos criar um post'
+        contentTitle='Ops!'
+      />
+    );
+  }
+
+  const posts = postsRes.data;
+
   if (posts.length <= 1)
     return (
       <ErrorMessage
