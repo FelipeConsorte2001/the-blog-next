@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 const CreateUserBase = z.object({
   name: z.string().trim().min(4, 'Name must be at least 4 characters long'),
-  email: z.string().trim().email({ message: 'Invalid e-mail' }),
+  email: z.email({ message: 'Invalid e-mail' }).trim(),
   password: z
     .string()
     .trim()

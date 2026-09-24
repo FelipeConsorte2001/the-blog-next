@@ -26,6 +26,19 @@ export async function verifyPassword(password: string, base64Hash: string) {
   return await bcrypt.compare(password, hash);
 }
 
+export async function createLoginSessionFromApi(jwt: string) {
+  const expiresAt = new Date(Date.now() + loginExpSeconds * 1000);
+  const loginSession = jwt;
+  const cookieStore = await cookies();
+
+  cookieStore.set(loginCookieName, loginSession, {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'strict',
+    expires: expiresAt,
+  });
+}
+
 export async function createLoginSession(username: string) {
   const expiresAt = new Date(Date.now() + loginExpSeconds * 1000);
   const loginSession = await signJwt({ username, expiresAt });
@@ -60,6 +73,14 @@ export async function getLoginSession() {
 
   return verifyJwt(jwt);
 }
+export async function getLoginSessionForApi() {
+  const cookieStore = await cookies();
+  const jwt = cookieStore.get(loginCookieName)?.value;
+
+  if (!jwt) return false;
+
+  return verifyJwt(jwt);
+}
 
 export async function verifyLoginSession() {
   const jwtPayload = await getLoginSession();
@@ -73,6 +94,12 @@ export async function requireLoginSessionOrRedirect() {
   const isAuthenticated = await verifyLoginSession();
 
   if (!isAuthenticated) redirect('/admin/login');
+}
+
+export async function requireLoginSessionOrRedirectForApi() {
+  const isAuthenticated = await getLoginSessionForApi();
+
+  if (!isAuthenticated) redirect('/login');
 }
 
 export async function verifyJwt(jwt: string | undefined = '') {
