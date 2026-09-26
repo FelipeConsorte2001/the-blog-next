@@ -1,5 +1,6 @@
-import { findPublicPostBySlugCached } from '@/lib/post/queries/public';
+import { findPublicPostBySlugFromApiCached } from '@/lib/post/queries/public';
 import Image from 'next/image';
+import { notFound } from 'next/navigation';
 import PostDate from '../PostDate';
 import PostHeading from '../PostHeading';
 import { SafeMarkedown } from '../Safe/Markdown';
@@ -9,8 +10,10 @@ type SinglePostProps = {
 };
 
 export default async function SinglePost({ slug }: SinglePostProps) {
-  const post = await findPublicPostBySlugCached(slug);
+  const postRes = await findPublicPostBySlugFromApiCached(slug);
+  if (!postRes.success) notFound();
 
+  const post = postRes.data;
   return (
     <article className='mb-16'>
       <header className='gruop flex flex-col gap-4 mb-4'>
@@ -26,7 +29,7 @@ export default async function SinglePost({ slug }: SinglePostProps) {
           {post.title}
         </PostHeading>
         <p>
-          {post.author} | <PostDate dateTime={post.createdAt} />
+          {post.author.name} | <PostDate dateTime={post.createdAt} />
         </p>
       </header>
       <p className='mb-4 text-xl text-slate-600'>{post.excerpt}</p>
