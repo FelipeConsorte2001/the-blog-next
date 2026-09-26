@@ -20,7 +20,7 @@ export default async function PostsListAdmin() {
 
   const posts = postsRes.data;
 
-  if (posts.length <= 1)
+  if (posts.length <= 0)
     return (
       <ErrorMessage
         pageTitle=''

@@ -1,18 +1,18 @@
 'use server';
 
-import { makePartialDtoPost } from '@/dto/post/dto';
-import { verifyLoginSession } from '@/lib/login/manage-login';
-import { PostCreateSchema } from '@/lib/post/schemas';
-import { DtoPost, PostModel } from '@/models/post/post-model';
-import { postRepository } from '@/repositories/post';
+import { getLoginSessionForApi } from '@/lib/login/manage-login';
+import {
+  CreatePostForApiSchema,
+  DtoPostForApi,
+  DtoPostForApiSchema,
+} from '@/lib/post/schemas';
+import { authenticatedApiRequest } from '@/utils/authenticated-api-request';
 import { getZodErrorMessages } from '@/utils/get-zod-error-messages';
-import { slugFromText } from '@/utils/make-slug-from-text';
 import { revalidateTag } from 'next/cache';
 import { redirect } from 'next/navigation';
-import { v4 } from 'uuid';
 
 type CreatePostActionState = {
-  formState: DtoPost;
+  formState: DtoPostForApi;
   error: string[];
   sucess?: true;
 };
@@ -21,7 +21,7 @@ export async function createPostAction(
   prevState: CreatePostActionState,
   formData: FormData,
 ): Promise<CreatePostActionState> {
-  const isAuthenticated = await verifyLoginSession();
+  const isAuthenticated = await getLoginSessionForApi();
   if (!(formData instanceof FormData)) {
     return {
       formState: prevState.formState,
@@ -30,11 +30,11 @@ export async function createPostAction(
   }
 
   const formDataToObj = Object.fromEntries(formData.entries());
-  const zodParsedObj = PostCreateSchema.safeParse(formDataToObj);
+  const zodParsedObj = CreatePostForApiSchema.safeParse(formDataToObj);
 
   if (!isAuthenticated) {
     return {
-      formState: makePartialDtoPost(formDataToObj),
+      formState: DtoPostForApiSchema.parse(formDataToObj),
       error: ['Do the login in another page'],
     };
   }
@@ -43,36 +43,31 @@ export async function createPostAction(
     const error = getZodErrorMessages(zodParsedObj.error);
     return {
       error,
-      formState: makePartialDtoPost(formDataToObj),
+      formState: DtoPostForApiSchema.parse(formDataToObj),
     };
   }
 
-  const validPostData = zodParsedObj.data;
+  const newPost = zodParsedObj.data;
+  const createPostResponse = await authenticatedApiRequest<DtoPostForApi>(
+    `/post/me`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(newPost),
+    },
+  );
 
-  const timeCreated = new Date().toISOString();
-  const newPost: PostModel = {
-    ...validPostData,
-    createdAt: timeCreated,
-    updatedAt: timeCreated,
-    id: v4(),
-    slug: slugFromText(validPostData.title),
-  };
-
-  try {
-    await postRepository.create(newPost);
-  } catch (e: unknown) {
-    if (e instanceof Error) {
-      return {
-        formState: newPost,
-        error: [e.message],
-      };
-    }
+  if (!createPostResponse.success) {
     return {
-      formState: newPost,
-      error: ['unknown erro'],
+      formState: DtoPostForApiSchema.parse(formDataToObj),
+      error: createPostResponse.errors,
     };
   }
-  revalidateTag('posts', { expire: 0 });
 
-  redirect(`/admin/post/${newPost.id}?created=1`);
+  const createdPost = createPostResponse.data;
+
+  revalidateTag('posts', {});
+  redirect(`/admin/post/${createdPost.id}?created=1`);
 }

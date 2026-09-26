@@ -1,11 +1,12 @@
 'use server';
 
-import { verifyLoginSession } from '@/lib/login/manage-login';
-import { postRepository } from '@/repositories/post';
+import { getLoginSessionForApi } from '@/lib/login/manage-login';
+import { DtoPostForApi } from '@/lib/post/schemas';
+import { authenticatedApiRequest } from '@/utils/authenticated-api-request';
 import { revalidateTag } from 'next/cache';
 
 export async function deletePostAction(id: string) {
-  const isAuthenticated = await verifyLoginSession();
+  const isAuthenticated = await getLoginSessionForApi();
 
   if (!isAuthenticated) {
     return {
@@ -18,15 +19,41 @@ export async function deletePostAction(id: string) {
       error: 'Invalid data',
     };
   }
-  let post;
-  try {
-    post = await postRepository.delete(id);
-  } catch (e: unknown) {
-    if (e instanceof Error) {
-      return { error: e.message };
-    }
-    return { error: 'unknown erro' };
+  const postResponse = await authenticatedApiRequest<DtoPostForApi>(
+    `/post/me/${id}`,
+    {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    },
+  );
+
+  if (!postResponse.success) {
+    return {
+      error: 'Post not found',
+    };
   }
+
+  const deletePostResponse = await authenticatedApiRequest<DtoPostForApi>(
+    `/post/me/${id}`,
+    {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    },
+  );
+
+  if (!deletePostResponse.success) {
+    return {
+      error: 'Error deleting post',
+    };
+  }
+
   revalidateTag('posts', { expire: 0 });
-  revalidateTag(`posts-${post.slug}`, { expire: 0 });
+  revalidateTag(`posts-${postResponse.data.slug}`, { expire: 0 });
+
+  return {
+    error: '',
+  };
 }

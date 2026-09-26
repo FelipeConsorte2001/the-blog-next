@@ -1,8 +1,7 @@
 'use client';
 import { createPostAction } from '@/actions/post/create-post-action';
 import { updatePostAction } from '@/actions/post/update-post-action';
-import { makePartialDtoPost } from '@/dto/post/dto';
-import { DtoPost } from '@/models/post/post-model';
+import { DtoPostForApi, DtoPostForApiSchema } from '@/lib/post/schemas';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useActionState, useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
@@ -13,7 +12,7 @@ import { InputText } from '../InputText';
 import { MarkdownEditor } from '../MarkdownEditor';
 type ManagePostFormUpdateProps = {
   mode: 'update';
-  dtoPost: DtoPost;
+  dtoPost: DtoPostForApi;
 };
 type ManagePostFormCreateProps = {
   mode: 'create';
@@ -39,7 +38,7 @@ export function ManagePostForm(props: ManagePostFormProps) {
   }
 
   const initialState = {
-    formState: makePartialDtoPost(dtoPost),
+    formState: DtoPostForApiSchema.parse(dtoPost || {}),
     error: [],
   };
 
@@ -95,14 +94,7 @@ export function ManagePostForm(props: ManagePostFormProps) {
           disabled={isPending}
           readOnly
         />
-        <InputText
-          labelText='Autor'
-          name='author'
-          placeholder='Digite o nome do autor'
-          defaultValue={formState.author}
-          type='text'
-          disabled={isPending}
-        />
+
         <InputText
           labelText='Titulo'
           placeholder='Digite Titulo'
@@ -136,14 +128,15 @@ export function ManagePostForm(props: ManagePostFormProps) {
           disabled={isPending}
           name='coverImageUrl'
         />
-
-        <InputCheckbox
-          labelText='Publicar'
-          type='checkbox'
-          name='published'
-          defaultChecked={formState.published}
-          disabled={isPending}
-        />
+        {mode === 'update' && (
+          <InputCheckbox
+            labelText='Publicar'
+            type='checkbox'
+            name='published'
+            defaultChecked={formState.published}
+            disabled={isPending}
+          />
+        )}
         <div className='mt-4'>
           <Button type='submit' disabled={isPending}>
             Enviar

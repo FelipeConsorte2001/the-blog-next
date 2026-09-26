@@ -53,7 +53,7 @@ export const UpdatePostForApiSchema = PostBaseSchema.omit({
   author: true,
 }).extend({});
 
-export const PublicPostForApiSchema = PostBaseSchema.extend({
+export const DtoPostForApiSchema = PostBaseSchema.extend({
   id: z.string().default(''),
   slug: z.string().default(''),
   title: z.string().default(''),
@@ -70,4 +70,4 @@ export const PublicPostForApiSchema = PostBaseSchema.extend({
 
 export type CreatePostForApiDto = z.infer<typeof CreatePostForApiSchema>;
 export type UpdatePostForApiDto = z.infer<typeof UpdatePostForApiSchema>;
-export type PublicPostForApiDto = z.infer<typeof PublicPostForApiSchema>;
+export type DtoPostForApi = z.infer<typeof DtoPostForApiSchema>;

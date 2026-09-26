@@ -79,7 +79,7 @@ export async function getLoginSessionForApi() {
 
   if (!jwt) return false;
 
-  return verifyJwt(jwt);
+  return jwt;
 }
 
 export async function verifyLoginSession() {
