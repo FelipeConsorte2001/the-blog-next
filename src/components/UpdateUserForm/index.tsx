@@ -1,5 +1,6 @@
 'use client';
 
+import { deleteUserAction } from '@/actions/user/delete-user-action';
 import { updateUserAction } from '@/actions/user/update-user-action';
 import { PublicUserDto } from '@/lib/user/schemas';
 import clsx from 'clsx';
@@ -23,7 +24,7 @@ export function UpdateUserForm({ user }: UpdateUserFormProps) {
   });
 
   const [isDialogVisible, setIsDialogVisible] = useState(false);
-  const [isTransitioning] = useTransition();
+  const [isTransitioning, startTransition] = useTransition();
   const isElementsDisabled = isTransitioning;
 
   function showDeleteAccountDialog(
@@ -44,6 +45,17 @@ export function UpdateUserForm({ user }: UpdateUserFormProps) {
       toast.success('Atualizado com sucesso');
     }
   }, [state]);
+
+  function handleDeleteUserAccount() {
+    startTransition(async () => {
+      const result = await deleteUserAction();
+      if (result.errors) {
+        toast.dismiss();
+        result.errors.forEach(erro => toast.error(erro));
+        setIsDialogVisible(false);
+      }
+    });
+  }
 
   return (
     <div
@@ -115,7 +127,7 @@ export function UpdateUserForm({ user }: UpdateUserFormProps) {
         }
         disabled={isElementsDisabled}
         onCancel={() => setIsDialogVisible(false)}
-        onConfirm={() => {}}
+        onConfirm={handleDeleteUserAccount}
         isVisible={isDialogVisible}
         title='Apagar meu usuário'
       />
